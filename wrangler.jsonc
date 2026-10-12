@@ -1,0 +1,9 @@
+{
+  // Cloudflare (Workers Builds / `npx wrangler deploy`): publishes the chat website from gpt-oss-chat/static.
+  // The chat server (Ollama) stays on your own PC; see HOSTING.md. "name" must match your Worker's name in the dashboard.
+  "name": "gurasees-ai-chatbot-local-llm",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./gpt-oss-chat/static"
+  }
+}

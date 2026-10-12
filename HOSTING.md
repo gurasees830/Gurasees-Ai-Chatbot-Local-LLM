@@ -47,7 +47,7 @@ with a **fixed** address, because the website has to know where the server is.
    |---|---|
    | **Netlify** | Add new site → Import from Git → pick the repo. `netlify.toml` sets the build. Site settings → Environment variables → `API_BASE`. |
    | **Vercel** | Add New → Project → pick the repo. `vercel.json` sets the build. Settings → Environment Variables → `API_BASE`. |
-   | **Cloudflare Pages** | Workers & Pages → Create → Pages → Connect to Git. Build command `node scripts/make-config.js`, output directory `gpt-oss-chat/static`, variable `API_BASE`. |
+   | **Cloudflare** | Workers & Pages → Create → connect the Git repo. `wrangler.jsonc` tells Cloudflare which folder to publish. In the project's **Settings → Build**, set **Build command** to `node scripts/make-config.js`, keep **Deploy command** as `npx wrangler deploy`, and add `API_BASE` under **Build → Variables and secrets** (build variables, not runtime variables). The `name` in `wrangler.jsonc` must match your Worker's name. If you use classic Cloudflare Pages instead: build command `node scripts/make-config.js`, output directory `gpt-oss-chat/static`. |
 
    The build fails with a clear message if `API_BASE` is missing or doesn't start with `https://`.
 4. Open your site, log in with the password. After changing `API_BASE`, redeploy the site.
