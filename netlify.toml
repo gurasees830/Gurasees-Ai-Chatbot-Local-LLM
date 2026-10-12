@@ -1,0 +1,10 @@
+# Netlify: hosts the chat page only. The chat server (Ollama) keeps running on your own PC; see HOSTING.md.
+# Set the environment variable API_BASE in Site settings -> Environment variables.
+[build]
+  command = "node scripts/make-config.js"
+  publish = "gpt-oss-chat/static"
+
+[[headers]]
+  for = "/config.js"
+  [headers.values]
+    Cache-Control = "no-cache"

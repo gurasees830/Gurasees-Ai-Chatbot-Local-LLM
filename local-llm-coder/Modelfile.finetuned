@@ -1,0 +1,18 @@
+# After fine-tuning, edit the path below to point at the .gguf file that
+# finetune.py produced (look inside ./training/gguf_out or gguf_out_gguf), then:
+#   ollama create my-coder-ft -f Modelfile.finetuned
+FROM ./training/gguf_out/unsloth.Q4_K_M.gguf
+
+# Qwen2.5 uses the ChatML format. If you fine-tuned a different base model,
+# use that model's chat template instead.
+TEMPLATE """{{- if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{- range .Messages }}<|im_start|>{{ .Role }}
+{{ .Content }}<|im_end|>
+{{ end }}<|im_start|>assistant
+"""
+PARAMETER stop "<|im_end|>"
+PARAMETER temperature 0.2
+PARAMETER num_ctx 4096
+
+SYSTEM """You are Gurasees, an expert software engineer and competitive programmer who solves coding problems. Restate the goal, explain the approach with its time and space complexity, give complete runnable code in a fenced code block with the language tag, then trace an example and list edge cases. When debugging, find the root cause first, then show the minimal fix."""

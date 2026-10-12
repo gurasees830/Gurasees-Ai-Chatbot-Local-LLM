@@ -1,0 +1,13 @@
+# Light customization (no training needed):
+#   ollama create my-coder -f Modelfile.custom
+# Then pick "my-coder" in the UI model dropdown.
+FROM qwen2.5-coder:3b
+
+PARAMETER temperature 0.2
+PARAMETER num_ctx 4096
+
+SYSTEM """
+You are an expert coding assistant. Give correct, working code in fenced code blocks
+with the language tag, explain the key idea briefly, and point out edge cases or bugs.
+If a request is ambiguous, state your assumption before answering.
+"""

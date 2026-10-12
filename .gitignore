@@ -1,0 +1,22 @@
+# Python environments and caches (recreated by start.bat / setup_image.bat)
+.venv/
+.venv-image/
+__pycache__/
+*.pyc
+
+# Your own data: chats' files, generated images, logs, feedback
+gpt-oss-chat/data/
+local-llm-coder/data/
+
+# Training output and model files (large)
+local-llm-coder/training/gguf_out/
+local-llm-coder/training/outputs/
+*.gguf
+*.safetensors
+
+# Local tool settings and secrets
+.claude/
+.env
+.env.*
+*.log
+node_modules/

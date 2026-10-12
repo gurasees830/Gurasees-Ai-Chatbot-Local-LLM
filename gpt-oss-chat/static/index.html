@@ -1,0 +1,1584 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gurasees's Deep Learning Local LLM Chatbot</title>
+<script src="config.js"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2310a37f'/%3E%3Cpath d='M12 4l1.9 5.1L19 11l-5.1 1.9L12 18l-1.9-5.1L5 11l5.1-1.9z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+:root {
+  --bg: #0e1014; --panel: #15181e; --panel-2: #1c2028; --panel-3: #242934; --border: #272c37; --border-2: #343a47;
+  --text: #e8eaee; --muted: #8a92a2; --accent: #10a37f; --accent-2: #0d8c6c; --accent-soft: rgba(16,163,127,.14);
+  --blue: #3b82f6; --purple: #a855f7; --user: #22314a; --danger: #e5484d; --warn: #f5a524; --code-bg: #0a0c10;
+  --radius: 14px; --shadow: 0 12px 32px rgba(0,0,0,.4);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f7f7f8; --panel: #ffffff; --panel-2: #f1f2f5; --panel-3: #e7e9ee; --border: #e2e5ea; --border-2: #cfd4dc;
+  --text: #1b1f27; --muted: #667085; --user: #e4edff; --accent-soft: rgba(16,163,127,.12); --code-bg: #0f1419;
+  --shadow: 0 12px 32px rgba(16,24,40,.12); color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f7f7f8; --panel: #ffffff; --panel-2: #f1f2f5; --panel-3: #e7e9ee; --border: #e2e5ea; --border-2: #cfd4dc;
+    --text: #1b1f27; --muted: #667085; --user: #e4edff; --accent-soft: rgba(16,163,127,.12); --code-bg: #0f1419;
+    --shadow: 0 12px 32px rgba(16,24,40,.12); color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif; display: flex; overflow: hidden; }
+button { font: inherit; color: inherit; cursor: pointer; }
+input, textarea, select { font: inherit; color: inherit; }
+.icon-btn { background: none; border: 0; padding: 8px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); transition: background .12s, color .12s; }
+.icon-btn:hover { background: var(--panel-2); color: var(--text); }
+svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--panel-3); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- sidebar */
+#sidebar { width: 280px; flex-shrink: 0; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: margin .2s; }
+#sidebar.hidden { margin-left: -280px; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 16px 16px 8px; font-weight: 700; font-size: 16px; }
+.brand .logo { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), var(--blue)); display: grid; place-items: center; color: #fff; }
+.brand .logo svg { width: 17px; height: 17px; }
+.brand .logo { flex-shrink: 0; }
+.brand-name { min-width: 0; font-size: 14.5px; line-height: 1.25; }
+#newChat { margin: 6px 12px 8px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel-2); display: flex; gap: 8px; align-items: center; font-weight: 600; }
+#newChat:hover { border-color: var(--accent); }
+.search { margin: 0 12px 6px; position: relative; }
+.search svg { position: absolute; left: 10px; top: 9px; width: 16px; height: 16px; color: var(--muted); }
+.search input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 6px 10px 6px 32px; font-size: 13.5px; outline: 0; }
+.search input:focus { border-color: var(--border-2); }
+#sideScroll { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 8px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.sec-head .icon-btn { padding: 3px; }
+.sec-head .icon-btn svg { width: 16px; height: 16px; }
+.side-empty { color: var(--muted); font-size: 12.5px; padding: 4px 10px 6px; }
+.conv, .proj { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 9px; cursor: pointer; color: var(--muted); font-size: 14px; min-height: 36px; }
+.conv:hover, .proj:hover { background: var(--panel-2); color: var(--text); }
+.conv.active, .proj.active { background: var(--panel-2); color: var(--text); font-weight: 600; }
+.conv.nested { padding-left: 34px; font-size: 13.5px; }
+.proj svg { width: 17px; height: 17px; color: var(--accent); }
+.proj .count { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+.conv .title, .proj .title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv .icon-btn { opacity: 0; padding: 3px; }
+.conv:hover .icon-btn, .conv.active .icon-btn { opacity: 1; }
+.conv .icon-btn svg { width: 15px; height: 15px; }
+.side-foot { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.dot.ok { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); } .dot.bad { background: var(--danger); }
+
+/* ---------- main */
+#main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+header { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--bg); min-height: 54px; }
+.crumbs { display: flex; align-items: center; gap: 4px; min-width: 0; flex: 1; font-size: 14.5px; }
+.crumbs button { background: none; border: 0; padding: 5px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
+.crumbs button:hover { background: var(--panel-2); }
+.crumbs .proj-crumb { color: var(--accent); font-weight: 600; display: inline-flex; gap: 6px; align-items: center; }
+.crumbs .proj-crumb svg { width: 16px; height: 16px; }
+.crumbs .sep { color: var(--muted); }
+.crumbs .chat-crumb { font-weight: 600; }
+.crumbs input { background: var(--panel-2); border: 1px solid var(--border-2); border-radius: 8px; padding: 4px 8px; outline: 0; min-width: 220px; }
+
+#chat { flex: 1; overflow-y: auto; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 12px; }
+.banner { max-width: 860px; margin: 12px auto 0; padding: 10px 14px; border-radius: 10px; background: rgba(245,165,36,.12); border: 1px solid rgba(245,165,36,.35); font-size: 14px; }
+.banner code { background: var(--panel-2); padding: 1px 6px; border-radius: 5px; }
+
+.empty { text-align: center; padding-top: 8vh; }
+.empty h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -.01em; }
+.empty p { color: var(--muted); margin: 0 0 28px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; text-align: left; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; font-size: 14px; transition: border-color .12s, transform .12s; }
+.card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.card b { display: block; margin-bottom: 3px; }
+.card span { color: var(--muted); }
+
+/* ---------- project home */
+.proj-home { padding-top: 10px; }
+.proj-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.proj-head .big-ico { width: 48px; height: 48px; border-radius: 13px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex-shrink: 0; }
+.proj-head .big-ico svg { width: 24px; height: 24px; }
+.proj-head h1 { margin: 0; font-size: 24px; line-height: 1.25; word-break: break-word; }
+.proj-head p { margin: 2px 0 0; color: var(--muted); font-size: 13.5px; }
+.proj-head .btn { margin-left: auto; flex-shrink: 0; }
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+.pcard { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.pcard.wide { grid-column: 1 / -1; }
+.pcard h3 { margin: 0 0 8px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.pcard h3 .grow { flex: 1; }
+.pcard h3 svg { width: 16px; height: 16px; color: var(--muted); }
+.pcard .muted, .muted { color: var(--muted); font-size: 13.5px; }
+.pcard .instr { white-space: pre-wrap; font-size: 13.5px; max-height: 140px; overflow-y: auto; }
+.mem-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.mem-list li { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; padding: 5px 8px; border-radius: 8px; background: var(--panel-2); }
+.mem-list li span { flex: 1; }
+.mem-list li .icon-btn { padding: 2px; opacity: .5; }
+.mem-list li:hover .icon-btn { opacity: 1; }
+.mem-list li .icon-btn svg { width: 14px; height: 14px; }
+.mem-list li.new { box-shadow: inset 3px 0 0 var(--accent); }
+.mem-add { display: flex; gap: 8px; margin-top: 8px; }
+.mem-add input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13.5px; outline: 0; }
+.switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); font-weight: 500; cursor: pointer; }
+.switch input { accent-color: var(--accent); }
+.pfiles { display: flex; flex-direction: column; gap: 6px; }
+.pfiles .file-chip { max-width: none; }
+.pfiles .file-chip .meta { flex: 1; }
+.plist { display: flex; flex-direction: column; gap: 6px; }
+.plist .row-chat { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); cursor: pointer; font-size: 14px; }
+.plist .row-chat:hover { border-color: var(--accent); }
+.plist .row-chat span:first-child { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plist .row-chat span:last-child { color: var(--muted); font-size: 12.5px; flex-shrink: 0; }
+h3.list-h { font-size: 14px; margin: 0 0 8px; }
+
+/* ---------- messages */
+.msg { display: flex; gap: 14px; margin-bottom: 26px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; }
+.msg.assistant .avatar { background: linear-gradient(135deg, var(--accent), var(--blue)); }
+.msg.assistant .avatar svg { width: 16px; height: 16px; }
+.msg.user { justify-content: flex-end; }
+.msg.user .avatar { display: none; }
+.body { min-width: 0; flex: 1; }
+.msg.user .body { display: flex; flex-direction: column; align-items: flex-end; }
+.bubble { background: var(--user); padding: 10px 15px; border-radius: 18px 18px 4px 18px; white-space: pre-wrap; word-wrap: break-word; max-width: 85%; }
+.atts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; justify-content: flex-end; }
+.thumb-wrap { position: relative; cursor: zoom-in; }
+.att-thumb { width: 110px; height: 110px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); display: block; }
+.vid-badge { position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,.65); color: #fff; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 6px; display: flex; gap: 4px; align-items: center; pointer-events: none; }
+.vid-badge svg { width: 10px; height: 10px; fill: #fff; stroke: none; }
+.file-chip { display: inline-flex; align-items: center; gap: 9px; background: var(--panel); border: 1px solid var(--border); border-radius: 11px; padding: 7px 11px; font-size: 13px; max-width: 280px; }
+.file-chip .ico { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; font-size: 9.5px; font-weight: 700; color: #fff; flex-shrink: 0; background: #64748b; }
+.file-chip .meta { min-width: 0; }
+.file-chip .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.file-chip .sub { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-chip .icon-btn { padding: 3px; }
+.file-chip .icon-btn svg { width: 14px; height: 14px; }
+
+.thinking { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: var(--panel); }
+.thinking summary { cursor: pointer; padding: 7px 12px; color: var(--muted); font-size: 13.5px; user-select: none; list-style: none; display: flex; align-items: center; gap: 8px; }
+.thinking summary::-webkit-details-marker { display: none; }
+.thinking summary .chev { transition: transform .15s; width: 14px; height: 14px; }
+.thinking[open] summary .chev { transform: rotate(90deg); }
+.thinking .tbody { padding: 8px 14px 12px; color: var(--muted); font-size: 13.5px; white-space: pre-wrap; max-height: 360px; overflow-y: auto; border-top: 1px solid var(--border); }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1s infinite ease-in-out; flex-shrink: 0; }
+@keyframes pulse { 50% { opacity: .25; transform: scale(.7); } }
+.warn { font-size: 13px; padding: 7px 12px; border-radius: 9px; margin-bottom: 8px; background: rgba(245,165,36,.12); border: 1px solid rgba(245,165,36,.35); white-space: pre-wrap; }
+.status { color: var(--muted); font-size: 13.5px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.waiting { display: flex; gap: 5px; padding: 8px 0; }
+.waiting i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: pulse 1.2s infinite ease-in-out; }
+.waiting i:nth-child(2) { animation-delay: .2s; } .waiting i:nth-child(3) { animation-delay: .4s; }
+
+.md { word-wrap: break-word; }
+.md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
+.md p { margin: 0 0 12px; }
+.md h1, .md h2, .md h3 { margin: 18px 0 8px; line-height: 1.3; }
+.md h1 { font-size: 22px; } .md h2 { font-size: 19px; } .md h3 { font-size: 16.5px; }
+.md ul, .md ol { padding-left: 24px; margin: 0 0 12px; }
+.md li { margin: 3px 0; }
+.md a { color: #60a5fa; }
+.md blockquote { margin: 0 0 12px; padding: 4px 14px; border-left: 3px solid var(--border-2); color: var(--muted); }
+.md table { border-collapse: collapse; margin: 0 0 14px; display: block; overflow-x: auto; max-width: 100%; }
+.md th, .md td { border: 1px solid var(--border); padding: 7px 11px; text-align: left; }
+.md th { background: var(--panel-2); }
+.md hr { border: 0; border-top: 1px solid var(--border); margin: 16px 0; }
+.md :not(pre) > code { background: var(--panel-2); padding: 2px 6px; border-radius: 5px; font-size: 13.5px; }
+.md pre { background: var(--code-bg); border-radius: 10px; margin: 0 0 14px; overflow: hidden; border: 1px solid var(--border); }
+.md pre .code-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background: rgba(255,255,255,.04); color: #9aa4b2; font-size: 12px; }
+.md pre .code-head button { background: none; border: 0; color: #9aa4b2; font-size: 12px; }
+.md pre .code-head button:hover { color: #fff; }
+.md pre code { display: block; padding: 12px 14px; overflow-x: auto; font: 13.5px/1.55 "Cascadia Code", Consolas, monospace; color: #e6e8ec; background: none !important; }
+.cursor::after { content: "▍"; animation: blink 1s steps(2) infinite; color: var(--accent); }
+@keyframes blink { 50% { opacity: 0; } }
+.err { color: var(--danger); background: rgba(229,72,77,.1); border: 1px solid rgba(229,72,77,.3); padding: 9px 13px; border-radius: 10px; white-space: pre-wrap; }
+.actions { display: flex; gap: 2px; margin-top: 6px; align-items: center; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.actions .icon-btn { padding: 5px; }
+.actions .icon-btn svg { width: 16px; height: 16px; }
+.actions .stats { margin-left: 8px; }
+.mem-chip { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; padding: 2px 9px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); font-weight: 600; cursor: pointer; border: 0; font-size: 12px; }
+.mem-chip svg { width: 13px; height: 13px; }
+.mem-chip.busy { background: var(--panel-2); color: var(--muted); cursor: default; }
+.mem-chip.bad { background: rgba(229,72,77,.1); color: var(--danger); }
+.gen-wrap { display: inline-block; cursor: zoom-in; margin-top: 4px; }
+.gen-img { display: block; max-width: min(100%, 512px); height: auto; border-radius: 14px; border: 1px solid var(--border); }
+.gen-prompt { color: var(--muted); font-size: 13.5px; margin: 0 0 8px; }
+.zip-btn { display: inline-flex; align-items: center; gap: 6px; margin-left: 4px; padding: 4px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 12.5px; font-weight: 600; text-decoration: none; }
+.zip-btn:hover { border-color: var(--accent); color: var(--accent); }
+.zip-btn svg { width: 14px; height: 14px; }
+#modePill { display: inline-flex; align-items: center; gap: 6px; margin: 2px 0 4px; padding: 3px 6px 3px 10px; border-radius: 20px; background: rgba(168,85,247,.15); color: var(--purple); font-size: 12.5px; font-weight: 600; }
+#modePill[hidden] { display: none; }
+#modePill svg { width: 14px; height: 14px; }
+#modePill button { background: none; border: 0; color: inherit; padding: 1px; display: grid; place-items: center; border-radius: 50%; }
+#modePill button:hover { background: rgba(168,85,247,.2); }
+
+#toBottom { position: absolute; left: 50%; transform: translateX(-50%); bottom: 150px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-2); background: var(--panel); box-shadow: var(--shadow); display: none; place-items: center; color: var(--text); z-index: 5; }
+#toBottom.show { display: grid; }
+
+/* ---------- composer */
+.composer-wrap { padding: 8px 20px 16px; }
+.composer { max-width: 860px; margin: 0 auto; background: var(--panel); border: 1px solid var(--border); border-radius: 24px; padding: 10px 10px 8px 12px; box-shadow: var(--shadow); position: relative; transition: border-color .15s; }
+.composer:focus-within { border-color: var(--border-2); }
+.composer.drag { border-color: var(--accent); border-style: dashed; }
+#pending { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 6px; }
+#pending:empty { display: none; }
+.pend { position: relative; }
+.pend .x { position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; border-radius: 50%; background: var(--panel-3); border: 1px solid var(--border-2); display: grid; place-items: center; padding: 0; color: var(--text); z-index: 2; }
+.pend .x svg { width: 12px; height: 12px; }
+.pend img { width: 64px; height: 64px; object-fit: cover; border-radius: 11px; border: 1px solid var(--border); display: block; }
+.pend .busy { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.45); border-radius: 11px; }
+.spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+.spinner.dark { border-color: var(--panel-3); border-top-color: var(--accent); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.file-chip.bad { border-color: var(--danger); }
+.file-chip.big .sub { color: var(--warn); }
+#input { width: 100%; resize: none; border: 0; outline: 0; background: none; color: var(--text); padding: 6px 4px; max-height: 240px; min-height: 26px; }
+.crow { display: flex; align-items: center; gap: 6px; }
+#attachBtn { border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; padding: 0; }
+#attachBtn.open { background: var(--panel-2); color: var(--text); }
+#modelBtn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 10px 0 12px; border-radius: 18px; border: 1px solid var(--border); background: none; font-size: 13.5px; max-width: 320px; min-width: 0; }
+#modelBtn:hover, #modelBtn.open { background: var(--panel-2); }
+#modelBtn .mname { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#modelBtn .mstr { color: var(--muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+#modelBtn .bars { display: inline-flex; gap: 2px; align-items: flex-end; height: 12px; }
+#modelBtn .bars i { width: 3px; border-radius: 1px; background: var(--panel-3); }
+#modelBtn .bars i:nth-child(1) { height: 5px; } #modelBtn .bars i:nth-child(2) { height: 8px; } #modelBtn .bars i:nth-child(3) { height: 12px; }
+#modelBtn .bars i.on { background: var(--accent); }
+#modelBtn > svg { width: 14px; height: 14px; color: var(--muted); }
+#sendBtn { margin-left: auto; width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--accent); color: #fff; display: grid; place-items: center; flex-shrink: 0; transition: background .12s; }
+#sendBtn:hover:not(:disabled) { background: var(--accent-2); }
+#sendBtn:disabled { background: var(--panel-2); color: var(--muted); cursor: default; }
+#sendBtn.stop { background: var(--text); color: var(--bg); }
+.hint { text-align: center; color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+.pop { position: absolute; bottom: 56px; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 6px; display: none; z-index: 20; max-width: calc(100vw - 32px); }
+.pop.show { display: block; animation: popin .12s ease-out; }
+@keyframes popin { from { opacity: 0; transform: translateY(6px); } }
+#menu { left: 8px; min-width: 270px; }
+#menu button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 12px; background: none; border: 0; border-radius: 10px; text-align: left; }
+#menu button:hover { background: var(--panel-2); }
+.mi { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0; }
+.mi svg { width: 18px; height: 18px; }
+#menu b { display: block; font-size: 14px; font-weight: 600; line-height: 1.3; }
+#menu small { color: var(--muted); font-size: 12px; }
+#menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px 6px; }
+
+#modelMenu { left: 52px; width: 400px; padding: 8px; }
+.pop-h { font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 6px 10px 4px; }
+.mopt { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 9px 10px; border: 0; background: none; border-radius: 10px; text-align: left; }
+.mopt:hover { background: var(--panel-2); }
+.mopt.on { background: var(--accent-soft); }
+.mopt .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-2); flex-shrink: 0; margin-top: 2px; display: grid; place-items: center; }
+.mopt.on .radio { border-color: var(--accent); }
+.mopt.on .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.mopt .mt { flex: 1; min-width: 0; }
+.mopt .mt b { font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.mopt .mt small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.4; margin-top: 1px; }
+.mopt .mt .spec { font-size: 11.5px; margin-top: 3px; }
+.tag { font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 20px; letter-spacing: .02em; }
+.tag.reason { background: rgba(168,85,247,.15); color: var(--purple); }
+.tag.code { background: rgba(59,130,246,.15); color: var(--blue); }
+.tag.vision { background: rgba(245,165,36,.15); color: var(--warn); }
+.tag.slow { background: rgba(229,72,77,.12); color: var(--danger); }
+.tag.fast { background: var(--accent-soft); color: var(--accent); }
+.tag.ready { background: var(--accent); color: #fff; }
+.mopt .unload { align-self: center; font-size: 12px; color: var(--muted); padding: 3px 9px; border-radius: 8px; border: 1px solid var(--border); flex-shrink: 0; }
+.mopt .unload:hover { color: var(--danger); border-color: var(--danger); }
+.tag.loading { background: var(--panel-3); color: var(--muted); }
+#modelMenu .models { max-height: 300px; overflow-y: auto; }
+.strength { border-top: 1px solid var(--border); margin-top: 6px; padding: 4px 2px 2px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--panel-2); border: 1px solid var(--border); border-radius: 11px; padding: 3px; margin: 2px 8px 6px; }
+.seg button { border: 0; background: none; padding: 6px 8px; border-radius: 8px; color: var(--muted); font-size: 13.5px; display: flex; flex-direction: column; align-items: center; gap: 0; line-height: 1.25; }
+.seg button small { font-size: 10.5px; opacity: .85; }
+.seg button.on { background: var(--accent); color: #fff; font-weight: 600; }
+.str-desc { font-size: 12.5px; color: var(--muted); padding: 0 10px 6px; line-height: 1.45; }
+
+/* ---------- modal, toast, lightbox */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+.modal-bg.show { display: flex; }
+.modal { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; padding: 22px; box-shadow: var(--shadow); }
+.modal h2 { margin: 0 0 4px; font-size: 19px; }
+.modal .lead { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; }
+.field small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+.setting { background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; width: 100%; outline: 0; }
+.setting:focus { border-color: var(--border-2); }
+textarea.setting { min-height: 110px; resize: vertical; }
+.check { display: flex; align-items: center; gap: 8px; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+.modal-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.modal-foot .r { display: flex; gap: 8px; margin-left: auto; }
+.btn { padding: 7px 15px; border-radius: 9px; border: 1px solid var(--border); background: var(--panel-2); display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.btn:hover { border-color: var(--border-2); }
+.btn svg { width: 16px; height: 16px; }
+.btn.sm { padding: 4px 10px; font-size: 13px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn.primary:hover { background: var(--accent-2); }
+.btn.danger { color: var(--danger); }
+#toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 600; opacity: 0; pointer-events: none; transition: all .2s; z-index: 70; max-width: calc(100vw - 32px); }
+#toast.show { opacity: 1; transform: translateX(-50%); }
+#lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.88); display: none; align-items: center; justify-content: center; z-index: 60; cursor: zoom-out; padding: 20px; }
+#lightbox.show { display: flex; }
+#lightbox .lb { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; max-height: 100%; overflow: auto; }
+#lightbox img { max-width: 92vw; max-height: 90vh; border-radius: 10px; }
+#lightbox .lb.multi img { max-width: 30vw; max-height: 40vh; }
+
+@media (max-width: 760px) {
+  #sidebar { position: fixed; z-index: 40; height: 100%; box-shadow: var(--shadow); }
+  .wrap { padding: 16px 14px; }
+  .composer-wrap { padding: 8px 10px 12px; }
+  .pgrid { grid-template-columns: 1fr; }
+  #modelBtn .mstr span { display: none; }
+  #modelMenu { left: 8px; }
+  .hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="brand"><div class="logo"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></div><span class="brand-name">Gurasees's Deep Learning Local LLM Chatbot</span></div>
+  <button id="newChat"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>New chat</button>
+  <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="search" placeholder="Search chats" autocomplete="off"></div>
+  <div id="sideScroll">
+    <div class="sec-head">Projects <button class="icon-btn" id="newProject" title="New project"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div id="projList"></div>
+    <div class="sec-head">Chats</div>
+    <div id="convList"></div>
+  </div>
+  <div class="side-foot"><span class="dot" id="statusDot"></span><span id="statusText">Connecting to Ollama…</span></div>
+</aside>
+
+<main id="main">
+  <header>
+    <button class="icon-btn" id="toggleSide" title="Toggle sidebar"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
+    <div class="crumbs" id="crumbs"></div>
+    <button class="icon-btn" id="settingsBtn" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  </header>
+
+  <div id="banner"></div>
+  <div id="chat"><div class="wrap" id="msgs"></div></div>
+  <button id="toBottom" title="Scroll to bottom"><svg viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+
+  <div class="composer-wrap">
+    <div class="composer" id="composer">
+      <div id="pending"></div>
+      <div id="modePill" hidden><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>Create image<button id="modeOff" title="Back to chat"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      <textarea id="input" rows="1" placeholder="Message…"></textarea>
+      <div class="crow">
+        <button class="icon-btn" id="attachBtn" title="Add files, photos, video or a screenshot"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button id="modelBtn" title="Choose model and strength"></button>
+        <button id="sendBtn" title="Send" disabled><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </div>
+      <div class="pop" id="menu">
+        <button data-pick="image"><span class="mi" style="background:rgba(168,85,247,.15);color:var(--purple)"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span><span><b>Create image</b><small>Draw a picture from a description</small></span></button>
+        <hr>
+        <button data-pick="photo"><span class="mi" style="background:rgba(59,130,246,.15);color:var(--blue)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span><span><b>Photos</b><small>JPG, PNG, WEBP, GIF</small></span></button>
+        <button data-pick="shot"><span class="mi" style="background:rgba(168,85,247,.15);color:var(--purple)"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span><b>Take a screenshot</b><small>Capture a window or your screen</small></span></button>
+        <button data-pick="video"><span class="mi" style="background:rgba(229,72,77,.13);color:var(--danger)"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg></span><span><b>Video</b><small>MP4, WEBM, MOV: read as key frames</small></span></button>
+        <hr>
+        <button data-pick="doc"><span class="mi" style="background:var(--accent-soft);color:var(--accent)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span><span><b>Documents</b><small>PDF, Word, Excel, PowerPoint, TXT, CSV</small></span></button>
+        <button data-pick="any"><span class="mi" style="background:rgba(245,165,36,.15);color:var(--warn)"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span><span><b>Any file</b><small>Code, JSON, logs, markdown…</small></span></button>
+      </div>
+      <div class="pop" id="modelMenu"></div>
+      <input type="file" id="filePhoto" accept="image/*" multiple hidden>
+      <input type="file" id="fileVideo" accept="video/*" multiple hidden>
+      <input type="file" id="fileDoc" accept=".pdf,.docx,.docm,.xlsx,.xlsm,.pptx,.pptm,.txt,.md,.csv,.tsv,.json,.rtf,.html,.htm,.xml" multiple hidden>
+      <input type="file" id="fileAny" multiple hidden>
+      <input type="file" id="fileProj" multiple hidden>
+    </div>
+    <div class="hint">Runs locally with Ollama. Paste links to read web pages, drop in files or screenshots, or use + → Create image.</div>
+  </div>
+</main>
+
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>Settings</h2>
+    <p class="lead">Applies to every chat.</p>
+    <div class="field">
+      <label for="sysPrompt">System prompt</label>
+      <textarea class="setting" id="sysPrompt" placeholder="Leave empty for the default helpful-assistant prompt"></textarea>
+      <small>Instructions applied to every message, e.g. "Answer in Hindi". For instructions that apply to one topic, use a project instead.</small>
+    </div>
+    <div class="field">
+      <label for="ctxSel">Context length (memory within a chat)</label>
+      <select class="setting" id="ctxSel">
+        <option value="4096">4K tokens: fastest, least memory</option>
+        <option value="8192">8K tokens: recommended</option>
+        <option value="16384">16K tokens: long chats / medium documents</option>
+        <option value="32768">32K tokens: big documents (needs more RAM)</option>
+        <option value="65536">64K tokens</option>
+        <option value="131072">128K tokens: maximum for gpt-oss</option>
+      </select>
+      <small>Raise this for long PDFs or projects with many files. Larger contexts use more memory and load slower.</small>
+    </div>
+    <div class="field">
+      <label for="tempIn">Temperature</label>
+      <input type="number" class="setting" id="tempIn" min="0" max="2" step="0.1" placeholder="Auto">
+      <small>Leave empty for Auto: 1.0 for gpt-oss (OpenAI's recommendation), 0.3 for coding models. Lower means more predictable.</small>
+    </div>
+    <div class="field">
+      <label for="themeSel">Theme</label>
+      <select class="setting" id="themeSel"><option value="">Match system</option><option value="dark">Dark</option><option value="light">Light</option></select>
+    </div>
+    <div class="field">
+      <label for="imgSize">Created images</label>
+      <select class="setting" id="imgSize">
+        <option value="512x512">Square 512 × 512</option>
+        <option value="768x512">Landscape 768 × 512</option>
+        <option value="512x768">Portrait 512 × 768</option>
+      </select>
+      <select class="setting" id="imgSteps" style="margin-top:8px">
+        <option value="1">1 step: fastest</option>
+        <option value="2">2 steps: recommended</option>
+        <option value="4">4 steps: most detail, slower</option>
+      </select>
+      <small>Images are drawn on your PC by SD-Turbo. The first image takes a few minutes while the image model downloads and loads.</small>
+    </div>
+    <div class="field check"><input type="checkbox" id="showThink"><label for="showThink" style="margin:0">Show the model's reasoning while it thinks</label></div>
+    <div class="modal-foot">
+      <button class="btn danger" id="clearAll">Delete all chats</button>
+      <button class="btn primary" id="saveSettings">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="projModal">
+  <div class="modal">
+    <h2 id="projModalTitle">New project</h2>
+    <p class="lead">Chats in a project share its instructions, files and memory. The model updates the memory after each reply, so it remembers what you worked on.</p>
+    <div class="field">
+      <label for="projName">Name</label>
+      <input class="setting" id="projName" placeholder="e.g. College thesis, Website rebuild" maxlength="80">
+    </div>
+    <div class="field">
+      <label for="projInstr">Instructions <span class="muted" style="font-weight:400">(optional)</span></label>
+      <textarea class="setting" id="projInstr" placeholder="e.g. I'm building a React + FastAPI app. Prefer TypeScript. Keep answers short."></textarea>
+    </div>
+    <div class="field check"><input type="checkbox" id="projLearn"><label for="projLearn" style="margin:0">Learn from chats automatically (update memory after each reply)</label></div>
+    <div class="modal-foot">
+      <button class="btn danger" id="projDelete">Delete project</button>
+      <div class="r"><button class="btn" id="projCancel">Cancel</button><button class="btn primary" id="projSave">Create</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="loginModal" style="z-index:80">
+  <form class="modal" style="max-width:380px" onsubmit="event.preventDefault(); doLogin();">
+    <h2>Log in</h2>
+    <p class="lead">This chatbot is password protected.</p>
+    <div class="field"><input class="setting" id="loginPw" type="password" placeholder="Password" autocomplete="current-password"><small id="loginErr" style="color:var(--danger)"></small></div>
+    <div class="modal-foot"><div class="r"><button class="btn primary" id="loginGo" type="submit">Log in</button></div></div>
+  </form>
+</div>
+
+<div id="lightbox"><div class="lb"></div></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const ICON = {
+  copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>',
+  redo: '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
+  trash: '<svg viewBox="0 0 24 24"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+  pencil: '<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  x: '<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  send: '<svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>',
+  down: '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
+  folder: '<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+  brain: '<svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 0 7 4.5v.5a3 3 0 0 0-3 3v1a3 3 0 0 0 0 6v1a3 3 0 0 0 3 3h.5A2.5 2.5 0 0 0 12 19.5v-15A2.5 2.5 0 0 0 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 1 17 4.5v.5a3 3 0 0 1 3 3v1a3 3 0 0 1 0 6v1a3 3 0 0 1-3 3h-.5a2.5 2.5 0 0 1-4.5-1.5"/></svg>',
+  doc: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+  list: '<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>',
+  spark: '<svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>',
+  zip: '<svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1zM10 12h4"/></svg>',
+  download: '<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
+};
+
+// ------------------------------------------------------------ storage (wrapped: may be unavailable)
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+};
+const settings = Object.assign({ model: "", strength: "balanced", system: "", num_ctx: 8192, temperature: null, showThink: true, theme: "", speed: {}, imgSize: "512x512", imgSteps: 2 },
+                               store.get("oss.settings", {}));
+if (!settings.v) {   // migrate older settings: reasoning level -> strength; temperature -> Auto
+  settings.strength = { low: "fast", high: "max" }[settings.think] || "balanced";
+  settings.temperature = null; settings.v = 2; delete settings.think;
+}
+let convs = store.get("oss.convs", []);       // [{id, title, updated, projectId?, messages:[...]}]
+let currentId = store.get("oss.current", null);
+let currentProject = store.get("oss.project", null);
+let projects = [];                             // from the server: [{id, name, instructions, memory, files, auto_learn}]
+const imageData = new Map();                   // attachment id -> full base64 (session memory only)
+const videoData = new Map();                   // attachment id -> {frames:[b64], times:[s]}
+let pending = [];                              // attachments waiting in the composer
+let controller = null;                         // AbortController for the running reply
+const learning = new Set();                    // assistant messages whose memory update is running
+let health = { models: [], vision_model: null };
+let freshMemory = new Set();                   // memory items added by the last update (highlighted)
+
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+const current = () => convs.find((c) => c.id === currentId);
+const projectById = (id) => projects.find((p) => p.id === id);
+function saveConvs() {
+  if (!store.set("oss.convs", convs)) {
+    // Out of space: drop the oldest chats until it fits.
+    convs.sort((a, b) => b.updated - a.updated);
+    while (convs.length > 1) { convs.pop(); if (store.set("oss.convs", convs)) break; }
+  }
+  store.set("oss.current", currentId);
+  store.set("oss.project", currentProject);
+}
+const saveSettings = () => store.set("oss.settings", settings);
+function applyTheme() { if (settings.theme) document.documentElement.dataset.theme = settings.theme; else delete document.documentElement.dataset.theme; }
+applyTheme();
+
+// ------------------------------------------------------------ server address + login
+// apiBase is "" when this page is served by the chat server itself; on a static host config.js points it at the server.
+const API_BASE = String(window.APP_CONFIG?.apiBase || "").replace(/\/+$/, "");
+let authToken = store.get("oss.token", "");
+const apiUrl = (p) => API_BASE + p;
+// <img> and download links can't send headers, so the token rides in the address.
+const mediaUrl = (p) => apiUrl(p) + (authToken ? (p.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(authToken) : "");
+function authHeaders(h = {}) { return authToken ? { ...h, Authorization: "Bearer " + authToken } : h; }
+async function apiFetch(path, init = {}) {
+  let r;
+  try { r = await fetch(apiUrl(path), { ...init, headers: authHeaders(init.headers || {}) }); }
+  catch (e) { throw new Error(API_BASE ? `Can't reach the chat server at ${API_BASE}. Is it running and is the tunnel up?` : "Can't reach the chat server. Is server.py still running?"); }
+  if (r.status === 401 && path !== "/api/login") { showLogin(); throw new Error("Please log in."); }
+  return r;
+}
+async function api(path, opts = {}) {
+  const init = { method: opts.method || "GET", headers: {} };
+  if (opts.json !== undefined) { init.headers["Content-Type"] = "application/json"; init.body = JSON.stringify(opts.json); }
+  if (opts.form) init.body = opts.form;
+  const r = await apiFetch(path, init);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || `Request failed (${r.status})`);
+  return j;
+}
+function showLogin(msg) {
+  $("#loginModal").classList.add("show");
+  $("#loginErr").textContent = msg || "";
+  setTimeout(() => $("#loginPw").focus(), 50);
+}
+async function doLogin() {
+  const pw = $("#loginPw").value;
+  if (!pw) return;
+  $("#loginGo").disabled = true;
+  try {
+    const j = await api("/api/login", { method: "POST", json: { password: pw } });
+    authToken = j.token; store.set("oss.token", authToken);
+    location.reload();
+  } catch (e) { $("#loginErr").textContent = e.message; $("#loginPw").select(); }
+  $("#loginGo").disabled = false;
+}
+let toastTimer = 0;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600); }
+function timeAgo(ts) {
+  const s = (Date.now() - ts) / 1000;
+  if (s < 60) return "just now"; if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`; if (s < 86400 * 7) return `${Math.floor(s / 86400)} d ago`;
+  return new Date(ts).toLocaleDateString();
+}
+function fmtDur(s) { s = Math.round(s); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
+
+// ------------------------------------------------------------ markdown
+if (window.marked) marked.setOptions({ gfm: true, breaks: true });
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function renderMd(el, text) {
+  if (!window.marked) { el.innerHTML = `<p style="white-space:pre-wrap">${esc(text)}</p>`; return; }
+  const html = marked.parse(text);
+  el.innerHTML = window.DOMPurify ? DOMPurify.sanitize(html) : html;
+  el.querySelectorAll("pre > code").forEach((code) => {
+    const lang = (code.className.match(/language-([\w+#-]+)/) || [])[1] || "text";
+    if (window.hljs) { try { hljs.highlightElement(code); } catch {} }
+    const head = document.createElement("div");
+    head.className = "code-head";
+    head.innerHTML = `<span>${esc(lang)}</span><button>Copy code</button>`;
+    head.querySelector("button").onclick = (e) => {
+      navigator.clipboard.writeText(code.innerText);
+      e.target.textContent = "Copied!"; setTimeout(() => (e.target.textContent = "Copy code"), 1500);
+    };
+    code.parentElement.prepend(head);
+  });
+  el.querySelectorAll("a").forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
+}
+
+// ------------------------------------------------------------ models & strength
+const MODEL_NOTES = [
+  [/^gpt-oss/, "OpenAI's open reasoning model. Best for hard questions, maths, logic and writing."],
+  [/^gurasees-coder/, "Your custom coding assistant, built on Qwen 2.5 Coder 3B."],
+  [/^qwen2\.5-coder:(7b|14b|32b)/, "Qwen coding model. Writes better code than the 3B, but slower."],
+  [/^qwen2\.5-coder/, "Small Qwen coding model. Quick answers to code questions."],
+  [/^(gemma3|llava|qwen2\.5vl|llama3\.2-vision|minicpm-v|moondream)/, "Vision model: can look at photos, screenshots and video frames."],
+];
+const modelInfo = (name) => health.models.find((m) => m.name === name) || { name, capabilities: [], size: 0 };
+const thinks = (name) => modelInfo(name).capabilities.includes("thinking");
+const seesImages = (name) => modelInfo(name).capabilities.includes("vision");
+function modelNote(name) { for (const [re, note] of MODEL_NOTES) if (re.test(name)) return note; return "Local model installed in Ollama."; }
+function modelTags(m) {
+  const tags = [];
+  if (loadingModel === m.name) tags.push(["loading", "Loading…"]);
+  else if ((health.loaded || []).includes(m.name)) tags.push(["ready", "● Ready"]);
+  if (m.capabilities.includes("thinking")) tags.push(["reason", "Reasoning"]);
+  if (/coder|code/.test(m.name)) tags.push(["code", "Code"]);
+  if (m.capabilities.includes("vision")) tags.push(["vision", "Vision"]);
+  const tps = settings.speed[m.name];
+  if (tps) tags.push(tps >= 15 ? ["fast", `~${Math.round(tps)} tok/s here`] : ["slow", `~${tps} tok/s here`]);
+  return tags;
+}
+const STRENGTHS = [["fast", "Fast"], ["balanced", "Balanced"], ["max", "Max"]];
+function strengthDesc(model, s) {
+  if (thinks(model)) return {
+    fast: "Low reasoning effort: thinks briefly. Quickest replies, fine for simple questions.",
+    balanced: "Medium reasoning effort. Good for most questions.",
+    max: "High reasoning effort: thinks the longest. Best for hard maths, logic and code, but slowest.",
+  }[s];
+  return {
+    fast: "Short, direct answers with little explanation.",
+    balanced: "Normal answers with explanation.",
+    max: "Works step by step and double-checks before answering. Longer, more careful replies. (This model has no built-in reasoning, so Max changes how it is asked to answer.)",
+  }[s];
+}
+function prettyName(n) { return n.replace(/:latest$/, ""); }
+
+function renderModelBtn() {
+  const lvl = { fast: 1, balanced: 2, max: 3 }[settings.strength];
+  const label = STRENGTHS.find(([v]) => v === settings.strength)[1];
+  $("#modelBtn").innerHTML = `<span class="mname">${esc(prettyName(settings.model || "No model"))}</span><span class="mstr"><span class="bars">${[1, 2, 3].map((i) => `<i class="${i <= lvl ? "on" : ""}"></i>`).join("")}</span><span>${label}</span></span>${ICON.down}`;
+  $("#input").placeholder = imageMode ? "Describe the image to create…" : `Message ${prettyName(settings.model || "the model")}…`;
+}
+
+// "Create image" mode: the next message is drawn by the image model instead of answered by the chat model.
+let imageMode = false;
+function setImageMode(on) {
+  imageMode = on;
+  $("#modePill").hidden = !on;
+  renderModelBtn(); updateSend(); input.focus();
+}
+function renderModelMenu() {
+  const box = $("#modelMenu");
+  const models = health.models.length ? health.models : [];
+  box.innerHTML = `<div class="pop-h">Model</div><div class="models"></div>
+    <div class="strength"><div class="pop-h">Strength</div><div class="seg"></div><div class="str-desc"></div></div>`;
+  const list = box.querySelector(".models");
+  if (!models.length) list.innerHTML = `<div class="str-desc">No models found. Is Ollama running?</div>`;
+  models.forEach((m) => {
+    const b = document.createElement("button");
+    b.className = "mopt" + (m.name === settings.model ? " on" : "");
+    const spec = [m.params, m.size ? (m.size / 1e9).toFixed(1) + " GB" : "", m.device === "cpu" ? "runs on CPU" : health.vram_gb ? "runs on GPU" : ""].filter(Boolean).join(" · ");
+    b.innerHTML = `<span class="radio"></span><span class="mt"><b>${esc(prettyName(m.name))}${modelTags(m).map(([c, t]) => `<span class="tag ${c}">${esc(t)}</span>`).join("")}</b><small>${esc(modelNote(m.name))}</small><small class="spec">${esc(spec)}</small></span>`;
+    b.onclick = () => { selectModel(m.name); renderModelMenu(); };
+    if ((health.loaded || []).includes(m.name)) {
+      const u = document.createElement("span");
+      u.className = "unload"; u.textContent = "Unload"; u.title = "Free this model's memory now";
+      u.onclick = async (e) => {
+        e.stopPropagation();
+        try { health.loaded = (await api("/api/unload", { method: "POST", json: { model: m.name } })).loaded; toast(`${prettyName(m.name)} unloaded`); }
+        catch (err) { toast(err.message); }
+        renderLoaded(); renderModelMenu();
+      };
+      b.appendChild(u);
+    }
+    list.appendChild(b);
+  });
+  const seg = box.querySelector(".seg");
+  const sub = thinks(settings.model) ? { fast: "low effort", balanced: "medium", max: "high effort" } : { fast: "brief", balanced: "normal", max: "careful" };
+  STRENGTHS.forEach(([v, label]) => {
+    const b = document.createElement("button");
+    b.className = v === settings.strength ? "on" : "";
+    b.innerHTML = `${label}<small>${sub[v]}</small>`;
+    b.onclick = () => { settings.strength = v; saveSettings(); renderModelBtn(); renderModelMenu(); };
+    seg.appendChild(b);
+  });
+  box.querySelector(".str-desc").textContent = strengthDesc(settings.model, settings.strength);
+}
+function selectModel(name) {
+  settings.model = name; saveSettings(); renderModelBtn(); renderBanner();
+  if (!current()?.messages.length && !currentProject) renderChat();
+  preloadModel(name);
+}
+
+// Start loading the picked model right away, so it is (nearly) ready by the time the message is typed.
+let loadingModel = null;
+async function preloadModel(name) {
+  if ((health.loaded || []).includes(name)) return;
+  try { if ((await api("/api/preload", { method: "POST", json: { model: name, num_ctx: settings.num_ctx } })).loaded) return refreshLoaded(); }
+  catch { return; }
+  loadingModel = name;
+  toast(`Loading ${prettyName(name)} in the background…`);
+  renderLoaded();
+  for (let i = 0; i < 300 && loadingModel === name; i++) {
+    await new Promise((r) => setTimeout(r, 3000));
+    await refreshLoaded();
+    if ((health.loaded || []).includes(name)) { loadingModel = null; toast(`${prettyName(name)} is ready`); break; }
+  }
+  if (loadingModel === name) loadingModel = null;
+  renderLoaded();
+}
+async function refreshLoaded() {
+  try { health.loaded = (await api("/api/loaded")).loaded; } catch {}
+  renderLoaded();
+}
+function renderLoaded() {
+  if (modelMenu.classList.contains("show")) renderModelMenu();
+  if (health.ollama) {
+    const n = (health.loaded || []).length;
+    $("#statusText").textContent = `Ollama connected · ${n} model${n === 1 ? "" : "s"} in memory · ${health.vision_model ? "vision via " + prettyName(health.vision_model) : "no vision model"}`;
+  }
+}
+
+// ------------------------------------------------------------ sidebar
+const sortConvs = (list) => [...list].sort((a, b) => b.updated - a.updated);
+function convRow(c, nested) {
+  const d = document.createElement("div");
+  d.className = "conv" + (nested ? " nested" : "") + (c.id === currentId ? " active" : "");
+  d.innerHTML = `<span class="title"></span><button class="icon-btn ren" title="Rename">${ICON.pencil}</button><button class="icon-btn del" title="Delete">${ICON.trash}</button>`;
+  d.querySelector(".title").textContent = c.title || "New chat";
+  d.title = c.title || "New chat";
+  d.onclick = () => openChat(c.id);
+  d.querySelector(".ren").onclick = (e) => { e.stopPropagation(); openChat(c.id); startRename(); };
+  d.querySelector(".del").onclick = (e) => {
+    e.stopPropagation();
+    if (!confirm(`Delete "${c.title || "New chat"}"?`)) return;
+    convs = convs.filter((x) => x.id !== c.id);
+    if (currentId === c.id) currentId = null;
+    saveConvs(); render();
+  };
+  return d;
+}
+function renderSidebar() {
+  const q = $("#search").value.trim().toLowerCase();
+  const match = (c) => !q || (c.title || "").toLowerCase().includes(q) || c.messages.some((m) => (m.content || "").toLowerCase().includes(q));
+  const pl = $("#projList");
+  pl.innerHTML = "";
+  projects.forEach((p) => {
+    const chats = sortConvs(convs.filter((c) => c.projectId === p.id));
+    const shown = chats.filter(match);
+    if (q && !shown.length && !p.name.toLowerCase().includes(q)) return;
+    const row = document.createElement("div");
+    row.className = "proj" + (p.id === currentProject && !currentId ? " active" : "");
+    row.innerHTML = `${ICON.folder}<span class="title"></span><span class="count">${chats.length || ""}</span>`;
+    row.querySelector(".title").textContent = p.name;
+    row.onclick = () => openProject(p.id);
+    pl.appendChild(row);
+    if (p.id === currentProject || q) shown.forEach((c) => pl.appendChild(convRow(c, true)));
+  });
+  if (!projects.length) pl.innerHTML = `<div class="side-empty">Group chats with shared instructions, files and memory.</div>`;
+
+  const cl = $("#convList");
+  cl.innerHTML = "";
+  const loose = sortConvs(convs.filter((c) => !c.projectId || !projectById(c.projectId))).filter(match);
+  loose.forEach((c) => cl.appendChild(convRow(c)));
+  if (!loose.length) cl.innerHTML = `<div class="side-empty">${q ? "No chats match." : "No chats yet."}</div>`;
+}
+
+function renderHeader() {
+  const box = $("#crumbs");
+  box.innerHTML = "";
+  const c = current();
+  const p = projectById(c?.projectId || currentProject);
+  if (p) {
+    const pb = document.createElement("button");
+    pb.className = "proj-crumb"; pb.innerHTML = `${ICON.folder}<span></span>`; pb.title = "Open project";
+    pb.querySelector("span").textContent = p.name;
+    pb.onclick = () => openProject(p.id);
+    box.appendChild(pb);
+    if (c) box.insertAdjacentHTML("beforeend", `<span class="sep">/</span>`);
+  }
+  if (c) {
+    const cb = document.createElement("button");
+    cb.className = "chat-crumb"; cb.title = "Rename chat"; cb.textContent = c.title || "New chat";
+    cb.onclick = startRename;
+    box.appendChild(cb);
+  }
+}
+function startRename() {
+  const c = current();
+  if (!c) return;
+  const btn = $("#crumbs .chat-crumb");
+  const inp = document.createElement("input");
+  inp.value = c.title || ""; inp.maxLength = 80;
+  btn.replaceWith(inp); inp.focus(); inp.select();
+  let done = false;
+  const finish = (save) => {
+    if (done) return; done = true;
+    if (save && inp.value.trim()) { c.title = inp.value.trim(); saveConvs(); }
+    render();
+  };
+  inp.onkeydown = (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); };
+  inp.onblur = () => finish(true);
+}
+
+function openChat(id) {
+  if (controller) return;
+  currentId = id;
+  currentProject = convs.find((c) => c.id === id)?.projectId || null;
+  saveConvs(); render();
+  if (innerWidth < 760) $("#sidebar").classList.add("hidden");
+}
+function openProject(id) {
+  if (controller) return;
+  currentId = null; currentProject = id; freshMemory = new Set();
+  saveConvs(); render(); $("#input").focus();
+  if (innerWidth < 760) $("#sidebar").classList.add("hidden");
+}
+function render() { renderSidebar(); renderHeader(); renderChat(); }
+
+// ------------------------------------------------------------ chat rendering
+const SUGGESTIONS = [
+  ["Summarize a document", "Upload a PDF or Word file and get the key points", "Summarize the attached document in 5 bullet points, then list any action items."],
+  ["Solve step by step", "Math, logic and reasoning problems", "A train leaves at 9:40 and travels 245 km at 70 km/h. When does it arrive? Explain step by step."],
+  ["Write & debug code", "Any language, with explanations", "Write a Python script that renames all photos in a folder by the date they were taken."],
+  ["Explain a concept", "Learn anything in simple terms", "Explain how transformers in AI work, as if I'm a first-year student."],
+];
+function fileIcon(name) {
+  const ext = (name.split(".").pop() || "").toLowerCase();
+  const colors = { pdf: "#e5484d", doc: "#3b82f6", docx: "#3b82f6", xls: "#16a34a", xlsx: "#16a34a", csv: "#16a34a", ppt: "#ea580c", pptx: "#ea580c", txt: "#64748b", md: "#64748b", json: "#a855f7", py: "#eab308", js: "#eab308", ts: "#3b82f6", html: "#ea580c" };
+  return `<span class="ico" style="background:${colors[ext] || "#64748b"}">${esc(ext.slice(0, 4).toUpperCase() || "FILE")}</span>`;
+}
+function attachmentsHtml(atts) {
+  return atts.map((a) => {
+    if (a.kind === "image") return `<span class="thumb-wrap" data-id="${a.id}"><img class="att-thumb" src="${a.thumb}" alt="${esc(a.name)}" title="${esc(a.name)}"></span>`;
+    if (a.kind === "video") return `<span class="thumb-wrap" data-id="${a.id}"><img class="att-thumb" src="${a.thumb}" alt="${esc(a.name)}" title="${esc(a.name)}"><span class="vid-badge">${ICON.play}${fmtDur(a.duration || 0)}</span></span>`;
+    return `<span class="file-chip">${fileIcon(a.name)}<span class="meta"><div class="nm">${esc(a.name)}</div><div class="sub">${(a.chars || 0).toLocaleString()} characters</div></span></span>`;
+  }).join("");
+}
+
+function renderChat() {
+  const box = $("#msgs");
+  const c = current();
+  box.innerHTML = "";
+  if (!c && currentProject && projectById(currentProject)) { renderProjectHome(box, projectById(currentProject)); return; }
+  if (!c || !c.messages.length) {
+    box.innerHTML = `<div class="empty"><h1>What can I help with?</h1><p>Welcome to <b>Gurasees's Deep Learning Local LLM Chatbot</b>.<br>Chatting with <b>${esc(prettyName(settings.model || "your local model"))}</b> privately on your own computer.</p><div class="cards"></div></div>`;
+    const cards = box.querySelector(".cards");
+    SUGGESTIONS.forEach(([t, s, p]) => {
+      const el = document.createElement("div");
+      el.className = "card"; el.innerHTML = `<b>${t}</b><span>${s}</span>`;
+      el.onclick = () => { input.value = p; autosize(); updateSend(); input.focus(); };
+      cards.appendChild(el);
+    });
+    return;
+  }
+  c.messages.forEach((m, i) => box.appendChild(m.role === "user" ? userEl(m) : assistantEl(m, c, i === c.messages.length - 1)));
+  scrollDown(true);
+}
+
+function userEl(m) {
+  const d = document.createElement("div");
+  d.className = "msg user";
+  d.innerHTML = `<div class="body">${m.attachments?.length ? `<div class="atts">${attachmentsHtml(m.attachments)}</div>` : ""}${m.content ? `<div class="bubble"></div>` : ""}</div>`;
+  if (m.content) d.querySelector(".bubble").textContent = m.content;
+  return d;
+}
+
+function assistantEl(m, c, isLast) {
+  const d = document.createElement("div");
+  d.className = "msg assistant";
+  d.innerHTML = `<div class="avatar">${ICON.spark}</div><div class="body"><div class="warn" hidden></div><div class="status" hidden></div><details class="thinking" hidden><summary>${ICON.chev}<span class="tlabel">Thought</span></summary><div class="tbody"></div></details><div class="md"></div><div class="actions"></div></div>`;
+  fillAssistant(d, m, c, isLast);
+  return d;
+}
+
+function fillAssistant(d, m, c, isLast) {
+  const w = d.querySelector(".warn");
+  if (m.warn) { w.hidden = false; w.textContent = m.warn; }
+  const th = d.querySelector(".thinking");
+  if (m.thinking && settings.showThink) {
+    th.hidden = false;
+    th.querySelector(".tbody").textContent = m.thinking;
+    th.querySelector(".tlabel").textContent = m.thinkSecs ? `Thought for ${m.thinkSecs}s` : "Reasoning";
+  }
+  const md = d.querySelector(".md");
+  if (m.error) md.innerHTML = `<div class="err">${esc(m.error)}</div>`;
+  else if (m.image) {
+    md.innerHTML = `<p class="gen-prompt"></p><span class="thumb-wrap gen-wrap"><img class="gen-img" alt=""></span>`;
+    md.querySelector(".gen-prompt").textContent = `Created from: "${m.image.prompt}"`;
+    md.querySelector("img").src = mediaUrl(m.image.url);
+    md.querySelector("img").alt = m.image.prompt;
+  }
+  else renderMd(md, m.content || "");
+  const act = d.querySelector(".actions");
+  act.innerHTML = "";
+  const copyText = m.image ? m.image.prompt : m.content || "";
+  const copy = btn(ICON.copy, m.image ? "Copy prompt" : "Copy", () => { navigator.clipboard.writeText(copyText); copy.innerHTML = ICON.check; setTimeout(() => (copy.innerHTML = ICON.copy), 1500); });
+  act.append(copy);
+  if (isLast) act.append(btn(ICON.redo, m.image || m.imageFor ? "Create another" : "Regenerate", regenerate));
+  if (m.image) {
+    const a = document.createElement("a");
+    a.className = "zip-btn"; a.href = mediaUrl(m.image.url); a.innerHTML = `${ICON.download}Download image`;
+    a.download = (m.image.prompt.replace(/[^\w]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "image") + ".png";
+    act.append(a);
+  }
+  const files = !m.error && !m.image ? codeFiles(m.content || "") : [];
+  if (files.length) {
+    const z = document.createElement("button");
+    z.className = "zip-btn"; z.innerHTML = `${ICON.zip}Download ZIP`;
+    z.title = `${files.length} file${files.length === 1 ? "" : "s"}:\n` + files.map((f) => f.path).join("\n");
+    z.onclick = () => downloadZip(files, c.title);
+    act.append(z);
+  }
+  if (m.image) {
+    const s = document.createElement("span");
+    s.className = "stats";
+    s.textContent = `${m.image.model.split("/").pop()} · ${m.image.width}×${m.image.height} · ${m.image.steps} step${m.image.steps === 1 ? "" : "s"} · seed ${m.image.seed} · ${m.image.seconds}s · ${m.image.device}`;
+    act.append(s);
+  }
+  if (m.stats) {
+    const s = document.createElement("span");
+    s.className = "stats";
+    s.textContent = `${prettyName(m.stats.model)}${m.stats.strength ? " · " + m.stats.strength : ""} · ${m.stats.tokens} tokens · ${m.stats.tps} tok/s · ${m.stats.seconds}s`;
+    act.append(s);
+  }
+  if (learning.has(m)) act.insertAdjacentHTML("beforeend", `<span class="mem-chip busy"><span class="spinner dark" style="width:11px;height:11px"></span>Updating project memory…</span>`);
+  else if (m.learn?.error) act.insertAdjacentHTML("beforeend", `<span class="mem-chip bad" title="${esc(m.learn.error)}">${ICON.brain}Memory not updated</span>`);
+  else if (m.learn && (m.learn.added || m.learn.removed)) {
+    const chip = document.createElement("button");
+    chip.className = "mem-chip";
+    chip.title = (m.learn.items || []).map((x) => "+ " + x).join("\n") || "Open project memory";
+    chip.innerHTML = `${ICON.brain}Memory updated${m.learn.added ? ` +${m.learn.added}` : ""}${m.learn.removed ? ` −${m.learn.removed}` : ""}`;
+    chip.onclick = () => openProject(c.projectId);
+    act.append(chip);
+  }
+}
+function btn(icon, title, fn) { const b = document.createElement("button"); b.className = "icon-btn"; b.title = title; b.innerHTML = icon; b.onclick = fn; return b; }
+
+// ------------------------------------------------------------ code blocks -> ZIP
+const LANG_EXT = { python: "py", py: "py", javascript: "js", js: "js", jsx: "jsx", typescript: "ts", ts: "ts", tsx: "tsx", html: "html", css: "css", scss: "scss",
+  json: "json", yaml: "yml", yml: "yml", toml: "toml", bash: "sh", sh: "sh", shell: "sh", powershell: "ps1", ps1: "ps1", bat: "bat", cmd: "bat", sql: "sql",
+  java: "java", kotlin: "kt", c: "c", cpp: "cpp", "c++": "cpp", csharp: "cs", cs: "cs", go: "go", rust: "rs", rs: "rs", php: "php", ruby: "rb", rb: "rb",
+  swift: "swift", dart: "dart", markdown: "md", md: "md", xml: "xml", dockerfile: "Dockerfile", vue: "vue", svelte: "svelte", ini: "ini", env: "env", text: "txt", txt: "txt" };
+const FILE_TOKEN = String.raw`((?:[\w@.~-]+[\\/])*(?:[\w@.-]*\.[A-Za-z0-9]{1,10}|Dockerfile|Makefile|Procfile|\.env(?:\.[\w-]+)?|\.gitignore))`;
+const RE_LABEL = new RegExp(String.raw`(?:file(?:name)?|path)\s*[:：-]\s*[\x60*_"']*` + FILE_TOKEN, "i");
+const RE_ALONE = new RegExp(String.raw`^[\s#>*\d.)-]*[\x60*_"']*` + FILE_TOKEN + String.raw`[\x60*_"']*\s*(?:\([^)]*\))?\s*:?\s*$`);
+const RE_COMMENT = new RegExp(String.raw`^\s*(?://|#|--|;|<!--|/\*)\s*(?:file(?:name)?\s*:\s*)?` + FILE_TOKEN + String.raw`\s*(?:-->|\*/)?\s*$`, "i");
+const RE_INFO = new RegExp(String.raw`(?:title|file(?:name)?)=["']?` + FILE_TOKEN + "|:" + FILE_TOKEN + "$", "i");
+
+// Every fenced code block of a reply, named by the file path written before it (or in its first-line comment).
+function codeFiles(text) {
+  const files = [], counts = {};
+  const re = /^([ \t]*)(```+|~~~+)([^\n]*)\n([\s\S]*?)^\1\2[ \t]*$/gm;
+  let mt;
+  while ((mt = re.exec(text))) {
+    const info = mt[3].trim(), lang = (info.split(/[\s:{]/)[0] || "").toLowerCase();
+    let code = mt[4].replace(/\n$/, ""), path = null;
+    const im = info.match(RE_INFO);
+    if (im) path = im[1] || im[2];
+    if (!path) {
+      const before = text.slice(0, mt.index).split("\n").map((l) => l.trim()).filter(Boolean).slice(-2).reverse();
+      for (const l of before) {
+        const hit = l.match(RE_LABEL) || (l.length < 120 && l.match(RE_ALONE));
+        if (hit) { path = hit[1]; break; }
+        if (l.length > 160) break;
+      }
+    }
+    if (!path) { const first = code.split("\n")[0]; const cm = first.match(RE_COMMENT); if (cm) path = cm[1]; }
+    if (!path) {
+      if (!code.trim() || ["text", "txt", "output", "console", "plaintext"].includes(lang) && !code.includes("\n")) continue;
+      const ext = LANG_EXT[lang] || "txt";
+      counts[ext] = (counts[ext] || 0) + 1;
+      path = ext === "Dockerfile" ? "Dockerfile" : `${["sh", "ps1", "bat"].includes(ext) ? "script" : "file"}${counts[ext] > 1 ? counts[ext] : ""}.${ext}`;
+    }
+    path = path.replace(/^[.][\\/]/, "").replace(/\\/g, "/");
+    const dup = files.findIndex((f) => f.path === path);
+    if (dup >= 0) files[dup].content = code + "\n"; else files.push({ path, content: code + "\n" });   // later version wins
+  }
+  return files;
+}
+async function downloadZip(files, title) {
+  try {
+    const r = await apiFetch("/api/zip", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: title || "code", files }) });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `Server error ${r.status}`);
+    const url = URL.createObjectURL(await r.blob());
+    const a = document.createElement("a");
+    a.href = url; a.download = ((title || "code").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "code") + ".zip";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast(`ZIP with ${files.length} file${files.length === 1 ? "" : "s"} downloaded`);
+  } catch (e) { toast(`Couldn't make the ZIP: ${e.message}`); }
+}
+
+let stick = true;
+$("#chat").addEventListener("scroll", () => {
+  const c = $("#chat"); stick = c.scrollHeight - c.scrollTop - c.clientHeight < 80;
+  $("#toBottom").classList.toggle("show", !stick && !!current()?.messages.length);
+});
+function scrollDown(force) { if (force || stick) { const c = $("#chat"); c.scrollTop = c.scrollHeight; } }
+$("#toBottom").onclick = () => { stick = true; scrollDown(true); $("#toBottom").classList.remove("show"); };
+
+// ------------------------------------------------------------ project home
+function renderProjectHome(box, p) {
+  const chats = sortConvs(convs.filter((c) => c.projectId === p.id));
+  box.innerHTML = `<div class="proj-home">
+    <div class="proj-head"><div class="big-ico">${ICON.folder}</div><div style="min-width:0"><h1></h1>
+      <p>${chats.length} chat${chats.length === 1 ? "" : "s"} · ${p.files.length} file${p.files.length === 1 ? "" : "s"} · ${p.memory.length} memor${p.memory.length === 1 ? "y" : "ies"}</p></div>
+      <button class="btn" id="phEdit">${ICON.pencil}Edit</button></div>
+    <div class="pgrid">
+      <section class="pcard"><h3>${ICON.list}<span class="grow">Instructions</span><button class="btn sm" id="phInstr">Edit</button></h3><div class="instr"></div></section>
+      <section class="pcard"><h3>${ICON.doc}<span class="grow">Files</span><button class="btn sm" id="phAddFile">${ICON.plus}Add</button></h3><div class="pfiles"></div></section>
+      <section class="pcard wide"><h3>${ICON.brain}<span class="grow">Memory</span><label class="switch" title="Update memory after every reply in this project"><input type="checkbox" id="phLearn">Learn from chats</label></h3>
+        <ul class="mem-list"></ul>
+        <form class="mem-add" id="phMemForm"><input id="phMemIn" placeholder="Add something the model should always remember…" maxlength="300"><button class="btn sm" type="submit">${ICON.plus}Add</button></form>
+      </section>
+    </div>
+    <h3 class="list-h">Chats in this project</h3><div class="plist"></div></div>`;
+  box.querySelector("h1").textContent = p.name;
+  const instr = box.querySelector(".instr");
+  if (p.instructions) instr.textContent = p.instructions; else instr.innerHTML = `<span class="muted">No instructions yet. Add how the model should behave in this project.</span>`;
+  const files = box.querySelector(".pfiles");
+  if (!p.files.length) files.innerHTML = `<span class="muted">Add documents or code the model should know in every chat here.</span>`;
+  p.files.forEach((f) => {
+    const chip = document.createElement("span");
+    chip.className = "file-chip";
+    chip.innerHTML = `${fileIcon(f.name)}<span class="meta"><div class="nm"></div><div class="sub">${f.chars.toLocaleString()} characters</div></span>`;
+    chip.querySelector(".nm").textContent = f.name;
+    chip.append(btn(ICON.x, "Remove file", async () => {
+      try { updateProject(await api(`/api/projects/${p.id}/files/${f.id}`, { method: "DELETE" })); } catch (e) { toast(e.message); }
+    }));
+    files.appendChild(chip);
+  });
+  const mem = box.querySelector(".mem-list");
+  if (!p.memory.length) mem.outerHTML = `<p class="muted" style="margin:0">Nothing remembered yet. ${p.auto_learn ? "As you chat in this project, the model writes down your goals, decisions and preferences here." : "Learning is off: add memories yourself, or turn on Learn from chats."}</p>`;
+  p.memory.forEach((item, i) => {
+    const li = document.createElement("li");
+    if (freshMemory.has(item)) li.className = "new";
+    li.innerHTML = `<span></span>`;
+    li.querySelector("span").textContent = item;
+    li.append(btn(ICON.x, "Forget this", () => saveMemory(p, p.memory.filter((_, j) => j !== i))));
+    mem.appendChild(li);
+  });
+  const learnBox = box.querySelector("#phLearn");
+  learnBox.checked = p.auto_learn;
+  learnBox.onchange = async () => { try { updateProject(await api(`/api/projects/${p.id}`, { method: "PATCH", json: { auto_learn: learnBox.checked } })); } catch (e) { toast(e.message); } };
+  box.querySelector("#phMemForm").onsubmit = (e) => { e.preventDefault(); const v = $("#phMemIn").value.trim(); if (v) saveMemory(p, [...p.memory, v]); };
+  box.querySelector("#phEdit").onclick = () => openProjectModal(p);
+  box.querySelector("#phInstr").onclick = () => { openProjectModal(p); $("#projInstr").focus(); };
+  box.querySelector("#phAddFile").onclick = () => $("#fileProj").click();
+  const list = box.querySelector(".plist");
+  if (!chats.length) list.innerHTML = `<p class="muted" style="margin:0">No chats yet. Type below to start the first chat in this project.</p>`;
+  chats.forEach((c) => {
+    const r = document.createElement("div");
+    r.className = "row-chat"; r.innerHTML = `<span></span><span>${timeAgo(c.updated)}</span>`;
+    r.querySelector("span").textContent = c.title || "New chat";
+    r.onclick = () => openChat(c.id);
+    list.appendChild(r);
+  });
+}
+function updateProject(p) {
+  const i = projects.findIndex((x) => x.id === p.id);
+  if (i >= 0) projects[i] = p; else projects.push(p);
+  render();
+}
+async function saveMemory(p, memory) {
+  try { updateProject(await api(`/api/projects/${p.id}`, { method: "PATCH", json: { memory } })); } catch (e) { toast(e.message); }
+}
+$("#fileProj").onchange = async () => {
+  const p = projectById(currentProject), files = [...$("#fileProj").files];
+  $("#fileProj").value = "";
+  if (!p) return;
+  for (const f of files) {
+    toast(`Reading ${f.name}…`);
+    const fd = new FormData(); fd.append("file", f);
+    try { updateProject(await api(`/api/projects/${p.id}/files`, { method: "POST", form: fd })); toast(`Added ${f.name} to the project`); }
+    catch (e) { toast(e.message); }
+  }
+};
+
+// project modal
+let editingProject = null;
+function openProjectModal(p) {
+  editingProject = p || null;
+  $("#projModalTitle").textContent = p ? "Edit project" : "New project";
+  $("#projSave").textContent = p ? "Save" : "Create";
+  $("#projDelete").style.visibility = p ? "visible" : "hidden";
+  $("#projName").value = p?.name || ""; $("#projInstr").value = p?.instructions || ""; $("#projLearn").checked = p ? p.auto_learn : true;
+  $("#projModal").classList.add("show");
+  $("#projName").focus();
+}
+$("#newProject").onclick = () => openProjectModal(null);
+$("#projCancel").onclick = () => $("#projModal").classList.remove("show");
+$("#projModal").onclick = (e) => { if (e.target.id === "projModal") $("#projModal").classList.remove("show"); };
+$("#projName").onkeydown = (e) => { if (e.key === "Enter") $("#projSave").click(); };
+$("#projSave").onclick = async () => {
+  const body = { name: $("#projName").value.trim() || "New project", instructions: $("#projInstr").value, auto_learn: $("#projLearn").checked };
+  try {
+    const p = editingProject
+      ? await api(`/api/projects/${editingProject.id}`, { method: "PATCH", json: body })
+      : await api("/api/projects", { method: "POST", json: body });
+    $("#projModal").classList.remove("show");
+    updateProject(p);
+    if (!editingProject) openProject(p.id);
+  } catch (e) { toast(e.message); }
+};
+$("#projDelete").onclick = async () => {
+  const p = editingProject;
+  const n = convs.filter((c) => c.projectId === p.id).length;
+  if (!confirm(`Delete project "${p.name}", its files and memory${n ? `, and its ${n} chat${n === 1 ? "" : "s"}` : ""}? This can't be undone.`)) return;
+  try {
+    await api(`/api/projects/${p.id}`, { method: "DELETE" });
+    projects = projects.filter((x) => x.id !== p.id);
+    convs = convs.filter((c) => c.projectId !== p.id);
+    if (currentProject === p.id) { currentProject = null; currentId = null; }
+    saveConvs(); $("#projModal").classList.remove("show"); render();
+  } catch (e) { toast(e.message); }
+};
+async function loadProjects() {
+  try { projects = await api("/api/projects"); } catch { projects = []; }
+  if (currentProject && !projectById(currentProject)) currentProject = null;
+  render();
+}
+
+// ------------------------------------------------------------ sending
+async function send() {
+  if (controller) { controller.abort(); return; }
+  const text = input.value.trim();
+  if (pending.some((p) => p.busy)) return;
+  const atts = pending.filter((p) => !p.error).map(({ id, name, kind, text, chars, thumb, duration, times }) => ({ id, name, kind, text, chars, thumb, duration, times }));
+  if (!text && !atts.length) return;
+  const imagePrompt = !atts.length ? imageRequest(text) : null;
+  if (imageMode && !text) return;
+
+  let c = current();
+  if (!c) { c = { id: uid(), title: "", updated: Date.now(), messages: [], projectId: currentProject || undefined }; convs.push(c); currentId = c.id; }
+  if (!c.title) c.title = (text || atts[0]?.name || "New chat").replace(/\s+/g, " ").slice(0, 48);
+  const fallback = atts.some((a) => a.kind === "video") ? "Describe this video." : atts.some((a) => a.kind === "image") ? "Describe this image." : "Please review the attached file.";
+  c.messages.push({ role: "user", content: text || fallback, attachments: atts, ...(imagePrompt ? { imagePrompt } : {}) });
+  input.value = ""; pending = []; renderPending(); autosize();
+  if (imageMode) setImageMode(false);
+  saveConvs(); render();
+  if (imagePrompt) await createImage(c, imagePrompt); else await stream(c);
+}
+
+// The prompt to draw, if this message asks for an image: Create-image mode, "/image ...", or "draw/generate an image of ...".
+const IMAGE_ASK = /^\s*(?:please\s+|can you\s+|could you\s+)?(?:generate|create|draw|make|paint|render|design|sketch|produce)\s+(?:me\s+)?(?:an?\s+|the\s+|some\s+)?(?:(?:ai|hd|realistic|cartoon|anime|digital)\s+)?(?:image|picture|photo|drawing|illustration|painting|sketch|wallpaper|artwork|portrait|logo|poster)s?\s+(?:of|showing|with|for|that shows|depicting)\s+/i;
+function imageRequest(text) {
+  if (!text) return null;
+  if (imageMode) return text;
+  const slash = text.match(/^\/(?:image|img|draw)\s+([\s\S]+)/i);
+  if (slash) return slash[1].trim();
+  if (IMAGE_ASK.test(text)) return text.replace(IMAGE_ASK, "").replace(/[?.!]+$/, "").trim() || null;
+  return null;
+}
+
+async function createImage(c, prompt) {
+  const m = { role: "assistant", content: "", imageFor: prompt };
+  c.messages.push(m);
+  const el = assistantEl(m, c, false);
+  $("#msgs").appendChild(el);
+  const md = el.querySelector(".md"), status = el.querySelector(".status");
+  md.innerHTML = `<div class="waiting"><i></i><i></i><i></i></div>`;
+  status.hidden = false;
+  status.innerHTML = `<span class="pulse"></span>Creating the image on your PC… The first one takes a few minutes while the image model downloads and loads.`;
+  scrollDown(true);
+  setBusy(true);
+  controller = new AbortController();
+  const [width, height] = settings.imgSize.split("x").map(Number);
+  try {
+    const r = await apiFetch("/api/image", {
+      method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
+      body: JSON.stringify({ prompt, width, height, steps: +settings.imgSteps }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.detail || `Server error ${r.status}`);
+    m.image = { url: j.url, prompt, seed: j.seed, seconds: j.seconds, device: j.device, model: j.model, width: j.width, height: j.height, steps: +settings.imgSteps };
+    m.content = `[I created an image for the prompt: "${prompt}". It is shown to the user above.]`;
+  } catch (e) {
+    if (e.name === "AbortError") { m.content = "_Stopped._"; m.stopped = true; }
+    else m.error = String(e.message || e).includes("fetch") ? "Can't reach the chat server. Is server.py still running?" : String(e.message || e);
+  }
+  controller = null;
+  setBusy(false);
+  status.hidden = true;
+  fillAssistant(el, m, c, true);
+  c.updated = Date.now();
+  saveConvs(); renderSidebar();
+  scrollDown();
+}
+
+function regenerate() {
+  const c = current();
+  if (!c || controller) return;
+  if (c.messages.at(-1)?.role === "assistant") c.messages.pop();
+  renderChat();
+  const ask = c.messages.at(-1)?.imagePrompt;
+  if (ask) createImage(c, ask); else stream(c);
+}
+
+async function stream(c) {
+  const model = settings.model;
+  const m = { role: "assistant", content: "", thinking: "" };
+  c.messages.push(m);
+  const el = assistantEl(m, c, false);
+  $("#msgs").appendChild(el);
+  const md = el.querySelector(".md"), th = el.querySelector(".thinking"), tbody = th.querySelector(".tbody"), status = el.querySelector(".status");
+  md.innerHTML = `<div class="waiting"><i></i><i></i><i></i></div>`;
+  scrollDown(true);
+  setBusy(true);
+  controller = new AbortController();
+
+  const t0 = Date.now(); let thinkEnd = 0, raf = 0;
+  const paint = () => {
+    raf = 0;
+    if (m.thinking && settings.showThink) {
+      th.hidden = false; tbody.textContent = m.thinking; tbody.scrollTop = tbody.scrollHeight;
+      th.querySelector(".tlabel").textContent = m.content ? `Thought for ${m.thinkSecs}s` : "Thinking…";
+    }
+    if (m.content) { md.classList.add("cursor"); renderMd(md, m.content); }
+    scrollDown();
+  };
+  const schedule = () => { if (!raf) raf = requestAnimationFrame(paint); };
+
+  const messages = c.messages.slice(0, -1).map((x) => ({
+    role: x.role, content: x.content || "",
+    attachments: (x.attachments || []).map((a) => ({
+      id: a.id, name: a.name, kind: a.kind, text: a.text || null, data: imageData.get(a.id) || null,
+      frames: videoData.get(a.id)?.frames || [], times: a.times || [], duration: a.duration || 0,
+    })),
+  })).filter((x) => x.content || x.attachments.length);
+
+  try {
+    const res = await apiFetch("/api/chat", {
+      method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
+      body: JSON.stringify({ model: model || null, messages, system: settings.system, strength: settings.strength, temperature: settings.temperature, num_ctx: settings.num_ctx, project_id: c.projectId || null }),
+    });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = "";
+    if (settings.showThink && thinks(model)) { th.hidden = false; th.open = true; th.querySelector(".tlabel").textContent = "Thinking…"; }
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split("\n"); buf = lines.pop();
+      for (const ln of lines) {
+        if (!ln.trim()) continue;
+        const ev = JSON.parse(ln);
+        if (ev.status !== undefined) {
+          status.hidden = !ev.status;
+          status.innerHTML = ev.status ? `<span class="pulse"></span>${esc(ev.status)}` : "";
+        } else if (ev.warn) {
+          m.warn = (m.warn ? m.warn + "\n" : "") + ev.warn;
+          const w = el.querySelector(".warn"); w.hidden = false; w.textContent = m.warn;
+        } else if (ev.image_desc) {
+          for (const msg of c.messages) for (const a of msg.attachments || []) if (a.id === ev.image_desc.id) a.text = ev.image_desc.text;
+        } else if (ev.t) { m.thinking += ev.t; schedule(); }
+        else if (ev.c) {
+          if (!thinkEnd) { thinkEnd = Date.now(); m.thinkSecs = Math.max(1, Math.round((thinkEnd - t0) / 1000)); if (th.open && m.thinking) th.open = false; }
+          m.content += ev.c; schedule();
+        } else if (ev.done) {
+          m.stats = { ...ev, strength: STRENGTHS.find(([v]) => v === settings.strength)?.[1] };
+          if (ev.tps) settings.speed[ev.model] = ev.tps;
+          refreshLoaded();
+        }
+        else if (ev.error) m.error = ev.error;
+      }
+    }
+  } catch (e) {
+    if (e.name === "AbortError") { if (!m.content) m.content = "_Stopped._"; m.stopped = true; }
+    else m.error = String(e.message || e).includes("fetch") ? "Can't reach the chat server. Is server.py still running?" : String(e.message || e);
+  }
+  if (raf) cancelAnimationFrame(raf);
+  if (!thinkEnd && m.thinking) m.thinkSecs = Math.max(1, Math.round((Date.now() - t0) / 1000));
+  if (!m.content && !m.error && m.thinking) m.content = "_The model used all its tokens thinking. Try a lower strength or a larger context in Settings._";
+  if (!m.content && !m.error) m.error = "The model returned an empty reply. Try again or pick another model.";
+  controller = null;
+  setBusy(false);
+  md.classList.remove("cursor");
+  status.hidden = true;
+  th.open = false; if (!m.thinking || !settings.showThink) th.hidden = true;
+  fillAssistant(el, m, c, true);
+  c.updated = Date.now();
+  saveSettings(); saveConvs(); renderSidebar();
+  scrollDown();
+  if (c.projectId && !m.error && !m.stopped) learn(c, m, el, model);
+}
+
+// After a reply in a project chat, let the model fold what it learned into the project memory.
+async function learn(c, m, el, model) {
+  const p = projectById(c.projectId);
+  if (!p || !p.auto_learn) return;
+  const user = c.messages[c.messages.indexOf(m) - 1];
+  if (!user) return;
+  const userText = user.content + ((user.attachments || []).length ? `\n[attached: ${user.attachments.map((a) => a.name).join(", ")}]` : "");
+  learning.add(m);
+  const refresh = () => { if (el.isConnected) fillAssistant(el, m, c, c.messages.at(-1) === m); };
+  refresh();
+  try {
+    const j = await api(`/api/projects/${p.id}/learn`, { method: "POST", json: { model, user: userText, assistant: m.content, title: c.title, num_ctx: settings.num_ctx } });
+    p.memory = j.memory;
+    m.learn = { added: j.added.length, removed: j.removed.length, items: j.added };
+    freshMemory = new Set(j.added);
+    if (j.added.length) toast(`Project memory updated: ${j.added.length} new item${j.added.length === 1 ? "" : "s"}`);
+  } catch (e) { m.learn = { error: e.message }; }
+  learning.delete(m);
+  saveConvs(); refresh();
+  if (!currentId && currentProject === p.id) renderChat();
+}
+
+function setBusy(on) {
+  const b = $("#sendBtn");
+  b.classList.toggle("stop", on);
+  b.innerHTML = on ? ICON.stop : ICON.send;
+  b.title = on ? "Stop" : "Send";
+  updateSend();
+}
+function updateSend() {
+  const has = input.value.trim() || pending.some((p) => !p.error);
+  $("#sendBtn").disabled = !controller && (!has || pending.some((p) => p.busy));
+}
+
+// ------------------------------------------------------------ attachments
+function charsToTokens(n) { return Math.round(n / 3.5); }
+function renderPending() {
+  const box = $("#pending");
+  box.innerHTML = "";
+  pending.forEach((p) => {
+    const d = document.createElement("div");
+    d.className = "pend";
+    if (p.kind === "image" || (p.kind === "video" && p.thumb)) {
+      d.innerHTML = `<img src="${p.thumb}" alt="" title="${esc(p.name)}">${p.kind === "video" ? `<span class="vid-badge">${ICON.play}${fmtDur(p.duration)}</span>` : ""}${p.busy ? '<div class="busy"><div class="spinner"></div></div>' : ""}`;
+    } else {
+      const big = p.kind === "doc" && !p.error && !p.busy && charsToTokens(p.chars) > settings.num_ctx - 4096;
+      const sub = p.busy ? (p.kind === "video" ? "Reading frames…" : "Reading…") : p.error ? p.error : big
+        ? `~${charsToTokens(p.chars).toLocaleString()} tokens: raise context in Settings`
+        : `${p.chars.toLocaleString()} characters${p.truncated ? " (truncated)" : ""}`;
+      d.innerHTML = `<span class="file-chip${p.error ? " bad" : ""}${big ? " big" : ""}">${p.busy ? '<span class="ico"><span class="spinner"></span></span>' : fileIcon(p.name)}<span class="meta"><div class="nm"></div><div class="sub"></div></span></span>`;
+      d.querySelector(".nm").textContent = p.name;
+      d.querySelector(".sub").textContent = sub;
+      d.querySelector(".sub").title = sub;
+    }
+    const x = document.createElement("button");
+    x.className = "x"; x.title = "Remove"; x.innerHTML = ICON.x;
+    x.onclick = () => { pending = pending.filter((q) => q !== p); imageData.delete(p.id); videoData.delete(p.id); renderPending(); };
+    d.appendChild(x);
+    box.appendChild(d);
+  });
+  updateSend();
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("unsupported image")); };
+    img.src = url;
+  });
+}
+function scaled(src, w, h, max, quality) {
+  const r = Math.min(1, max / Math.max(w, h));
+  const cv = document.createElement("canvas");
+  cv.width = Math.max(1, Math.round(w * r)); cv.height = Math.max(1, Math.round(h * r));
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(src, 0, 0, cv.width, cv.height);
+  return cv.toDataURL("image/jpeg", quality);
+}
+
+// Pull evenly spaced frames out of a video in the browser (no upload, no ffmpeg needed).
+async function videoFrames(file) {
+  const url = URL.createObjectURL(file);
+  const v = document.createElement("video");
+  v.muted = true; v.preload = "auto"; v.playsInline = true; v.src = url;
+  try {
+    await new Promise((res, rej) => { v.onloadeddata = res; v.onerror = () => rej(new Error("this video format can't be played by the browser (try MP4 or WEBM)")); });
+    const dur = isFinite(v.duration) ? v.duration : 0;
+    const n = dur <= 4 ? 3 : dur <= 20 ? 6 : 8;
+    const times = Array.from({ length: n }, (_, i) => +((i + 0.5) * dur / n).toFixed(2));
+    const frames = [];
+    for (const t of times) {
+      await new Promise((res) => { v.onseeked = res; v.currentTime = t; });
+      frames.push(scaled(v, v.videoWidth, v.videoHeight, 768, 0.8).split(",")[1]);
+    }
+    return { duration: dur, times, frames, thumb: "data:image/jpeg;base64," + frames[0] };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+async function addFiles(files) {
+  for (const file of files) {
+    const type = file.type || "";
+    const kind = type.startsWith("image/") ? "image" : type.startsWith("video/") ? "video" : "doc";
+    const p = { id: uid(), name: file.name || "pasted-image.png", busy: true, kind, chars: 0 };
+    if (kind === "image") {
+      try {
+        const img = await loadImage(file);
+        p.thumb = scaled(img, img.naturalWidth, img.naturalHeight, 220, 0.75);
+        imageData.set(p.id, scaled(img, img.naturalWidth, img.naturalHeight, 1600, 0.9).split(",")[1]);
+        p.busy = false;
+        pending.push(p);
+      } catch { toast(`Couldn't open image ${p.name}`); }
+      renderPending();
+      continue;
+    }
+    pending.push(p); renderPending();
+    if (kind === "video") {
+      try {
+        const v = await videoFrames(file);
+        Object.assign(p, { thumb: v.thumb, duration: v.duration, times: v.times });
+        videoData.set(p.id, { frames: v.frames });
+      } catch (e) { p.error = String(e.message || e); }
+      p.busy = false; renderPending();
+      continue;
+    }
+    const fd = new FormData(); fd.append("file", file);
+    try {
+      const j = await api("/api/upload", { method: "POST", form: fd });
+      Object.assign(p, { text: j.text, chars: j.chars, truncated: j.truncated });
+    } catch (e) { p.error = String(e.message || e).replace(/^Couldn't read [^:]+: /, ""); }
+    p.busy = false;
+    renderPending();
+  }
+  if (pending.some((p) => p.kind !== "doc") && !health.vision_model && !seesImages(settings.model)) showBanner("vision");
+}
+
+async function takeScreenshot() {
+  if (!navigator.mediaDevices?.getDisplayMedia) { toast("Screen capture isn't supported in this browser. Press Win+Shift+S, then paste here with Ctrl+V."); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }); }
+  catch { return; }   // user cancelled the picker
+  try {
+    const v = document.createElement("video");
+    v.srcObject = stream; v.muted = true;
+    await v.play();
+    await new Promise((r) => setTimeout(r, 250));   // let the first real frame arrive
+    const cv = document.createElement("canvas");
+    cv.width = v.videoWidth; cv.height = v.videoHeight;
+    cv.getContext("2d").drawImage(v, 0, 0);
+    const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+    const name = `screenshot-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")}.png`;
+    await addFiles([new File([blob], name, { type: "image/png" })]);
+  } finally { stream.getTracks().forEach((t) => t.stop()); }
+  input.focus();
+}
+
+// composer popovers + pickers
+const menu = $("#menu"), modelMenu = $("#modelMenu");
+function closePops() { menu.classList.remove("show"); modelMenu.classList.remove("show"); $("#attachBtn").classList.remove("open"); $("#modelBtn").classList.remove("open"); }
+$("#attachBtn").onclick = (e) => { e.stopPropagation(); const open = !menu.classList.contains("show"); closePops(); menu.classList.toggle("show", open); $("#attachBtn").classList.toggle("open", open); };
+$("#modelBtn").onclick = (e) => { e.stopPropagation(); const open = !modelMenu.classList.contains("show"); closePops(); if (open) { renderModelMenu(); modelMenu.classList.add("show"); $("#modelBtn").classList.add("open"); refreshLoaded(); } };
+// Clicks inside a popover never close it (the model menu re-renders, detaching the clicked node).
+[menu, modelMenu].forEach((p) => p.addEventListener("click", (e) => e.stopPropagation()));
+document.addEventListener("click", closePops);
+const pickers = { photo: $("#filePhoto"), video: $("#fileVideo"), doc: $("#fileDoc"), any: $("#fileAny") };
+menu.querySelectorAll("[data-pick]").forEach((b) => b.onclick = () => {
+  closePops();
+  if (b.dataset.pick === "shot") takeScreenshot();
+  else if (b.dataset.pick === "image") {
+    if (health.image_gen === false) toast("Image generation isn't installed yet. Run setup_image.bat in the app folder.");
+    setImageMode(true);
+  }
+  else pickers[b.dataset.pick].click();
+});
+$("#modeOff").onclick = () => setImageMode(false);
+Object.values(pickers).forEach((inp) => inp.onchange = () => { addFiles([...inp.files]); inp.value = ""; });
+
+// drag & drop + paste
+const composer = $("#composer");
+["dragenter", "dragover"].forEach((t) => document.addEventListener(t, (e) => { if (e.dataTransfer?.types.includes("Files")) { e.preventDefault(); composer.classList.add("drag"); } }));
+["dragleave", "drop"].forEach((t) => document.addEventListener(t, (e) => { if (t === "dragleave" && e.relatedTarget) return; composer.classList.remove("drag"); }));
+document.addEventListener("drop", (e) => { if (e.dataTransfer?.files.length) { e.preventDefault(); addFiles([...e.dataTransfer.files]); } });
+$("#input").addEventListener("paste", (e) => {
+  const files = [...(e.clipboardData?.files || [])];
+  if (files.length) { e.preventDefault(); addFiles(files); }
+});
+
+// lightbox for sent images and video frames
+$("#msgs").addEventListener("click", (e) => {
+  const w = e.target.closest(".thumb-wrap");
+  if (!w) return;
+  const id = w.dataset.id, lb = $("#lightbox .lb");
+  const frames = videoData.get(id)?.frames;
+  const srcs = frames ? frames.map((f) => "data:image/jpeg;base64," + f)
+    : [imageData.get(id) ? "data:image/jpeg;base64," + imageData.get(id) : w.querySelector("img").src];
+  lb.className = "lb" + (srcs.length > 1 ? " multi" : "");
+  lb.innerHTML = srcs.map((s) => `<img src="${s}" alt="">`).join("");
+  $("#lightbox").classList.add("show");
+});
+$("#lightbox").onclick = () => $("#lightbox").classList.remove("show");
+
+// ------------------------------------------------------------ input box
+const input = $("#input");
+function autosize() { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 240) + "px"; }
+input.addEventListener("input", () => { autosize(); updateSend(); });
+input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (!controller) send(); } });
+$("#sendBtn").onclick = send;
+
+// ------------------------------------------------------------ header controls
+$("#newChat").onclick = () => { if (controller) return; currentId = null; currentProject = null; saveConvs(); render(); input.focus(); };
+$("#toggleSide").onclick = () => $("#sidebar").classList.toggle("hidden");
+$("#search").addEventListener("input", renderSidebar);
+if (innerWidth < 760) $("#sidebar").classList.add("hidden");
+
+// settings modal
+$("#settingsBtn").onclick = () => {
+  $("#sysPrompt").value = settings.system; $("#ctxSel").value = String(settings.num_ctx);
+  $("#tempIn").value = settings.temperature ?? ""; $("#showThink").checked = settings.showThink; $("#themeSel").value = settings.theme;
+  $("#imgSize").value = settings.imgSize; $("#imgSteps").value = String(settings.imgSteps);
+  $("#settingsModal").classList.add("show");
+};
+$("#saveSettings").onclick = () => {
+  settings.system = $("#sysPrompt").value; settings.num_ctx = +$("#ctxSel").value;
+  const t = parseFloat($("#tempIn").value); settings.temperature = isNaN(t) ? null : Math.min(2, Math.max(0, t));
+  settings.showThink = $("#showThink").checked; settings.theme = $("#themeSel").value;
+  settings.imgSize = $("#imgSize").value; settings.imgSteps = +$("#imgSteps").value;
+  saveSettings(); applyTheme(); $("#settingsModal").classList.remove("show"); renderChat(); renderPending();
+};
+$("#settingsModal").onclick = (e) => { if (e.target.id === "settingsModal") $("#saveSettings").click(); };
+$("#clearAll").onclick = () => {
+  if (!confirm("Delete all chats, including chats inside projects? Project files and memory are kept. This can't be undone.")) return;
+  convs = []; currentId = null; saveConvs(); render(); $("#settingsModal").classList.remove("show");
+};
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { ["#settingsModal", "#projModal", "#lightbox"].forEach((s) => $(s).classList.remove("show")); closePops(); }
+});
+
+// ------------------------------------------------------------ health / banners
+let bannerKind = null;
+function showBanner(kind) { bannerKind = kind; renderBanner(); }
+function renderBanner() {
+  const b = $("#banner");
+  const msgs = {
+    ollama: `Ollama isn't running. Start the Ollama app, then this page will reconnect automatically.`,
+    nomodels: `No models are installed yet. Run <code>ollama pull gpt-oss:20b</code> or <code>ollama pull qwen2.5-coder:7b</code>, then refresh.`,
+    vision: `None of your installed models can see images or video. Install a small vision model once: <code>ollama pull gemma3:4b</code>, then refresh. The app will use it automatically to read photos, screenshots and video frames.`,
+  };
+  if (bannerKind === "vision" && (health.vision_model || seesImages(settings.model))) bannerKind = null;
+  b.innerHTML = bannerKind ? `<div class="banner">${msgs[bannerKind]}</div>` : "";
+}
+
+async function checkHealth() {
+  try {
+    const r = await apiFetch("/api/health");
+    health = await r.json();
+  } catch { health = { ollama: false, models: [] }; }
+  $("#statusDot").className = "dot " + (health.ollama ? "ok" : "bad");
+  if (health.ollama) renderLoaded(); else $("#statusText").textContent = "Ollama not reachable";
+  const names = health.models.map((m) => m.name);
+  if (!settings.model || !names.includes(settings.model)) settings.model = health.default_model || names[0] || "";
+  saveSettings(); renderModelBtn();
+  if (!health.ollama) bannerKind = "ollama";
+  else if (!names.length) bannerKind = "nomodels";
+  else if (bannerKind === "ollama" || bannerKind === "nomodels") bannerKind = null;
+  renderBanner();
+  if (!current()?.messages.length && !currentProject) renderChat();
+  if (!health.ollama || !names.length) setTimeout(checkHealth, 8000);
+}
+
+renderModelBtn(); render(); checkHealth(); loadProjects(); input.focus();
+</script>
+</body>
+</html>
